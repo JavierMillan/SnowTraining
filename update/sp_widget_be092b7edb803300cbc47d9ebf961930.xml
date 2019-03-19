@@ -1,0 +1,236 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_widget">
+    <sp_widget action="INSERT_OR_UPDATE">
+        <category>custom</category>
+        <client_script><![CDATA[function($http, $scope, spUtil, $interval) {
+	/* widget controller */
+	var c = this;
+
+	c.addUserValue = [];
+
+	c.searchUsers = function(searchText) {
+		if(searchText.length >= 3) {
+			return $http.get('/api/now/table/sys_user?sysparm_query=nameLIKE'+searchText+'&sysparm_fields=name%2Csys_id&sysparm_limit=10')
+				.then(function mySuccess(response){
+				console.log(response.data.result);
+				return response.data.result;
+			}, function myError(response){
+				//...
+			});
+		}
+	}
+
+	c.save = function() {
+		if(c.addUserValue && c.addPhoneValue){
+			var newUser = {
+				"u_user": c.addUserValue.sys_id,
+				"u_phone_number": c.addPhoneValue
+			};
+
+			$http.post('/api/now/table/x_186365_demo_celular', newUser)
+				.then(function mySuccess(response){
+				console.log(response);
+			}, function myError(response){
+				console.log(response);
+			});
+			c.server.refresh();
+		}
+	}
+	
+	/*
+	// Watcher
+	spUtil.recordWatch($scope, 'x_186365_demo_celular', '', function(name, data){
+		c.server.refresh();
+	});	
+	*/
+
+	/*
+	// Time refresher
+	c.redirect_seconds = 30;
+	
+	c.interval = $interval(function (){
+		console.log('Refreshing...');
+		spUtil.refresh($scope);
+	}, (c.redirect_seconds*1000));
+	
+	$scope.$on('$destroy', function() {
+		$interval.cancel(c.interval);
+	});
+	*/
+}]]></client_script>
+        <controller_as>c</controller_as>
+        <css>#main-demo-container {
+  padding: 1em;
+}
+
+.title-container {
+  background: #444;
+  padding: 1em;
+    margin-bottom: .75em;
+}
+
+.title-container &gt; h2 {
+  color: white;
+}
+
+.table-container {
+  background: #fefefe;
+  padding: 1em;  
+}
+
+.table-container &gt; table {
+	background: #eee;
+}
+
+.table-container &gt; table &gt; thead &gt; tr &gt; th {
+  background: #444;
+  color: #fff;
+  border: 0;
+}
+
+.table-container &gt; table &gt; thead &gt; tr &gt; th,
+.table-container &gt; table &gt; tbody &gt; tr &gt; td {
+  text-align: center;
+}
+
+.bold {
+  font-weight: bold;
+}
+
+.list {
+  background: #fff;
+  list-style: none;
+  padding: 0;
+}
+
+.add-user-container {
+  background: #fefefe;
+  padding: 1em;
+  margin: 0;
+  margin-bottom: 1em;
+}
+
+.z-depth-1 {
+  box-shadow: 0 5px 10px rgba(0,0,0,0.5);
+}
+
+.typeahead.dropdown-menu { z-index: 10000;}
+
+hr {
+	border-top: 1px solid #888;
+}</css>
+        <data_table>sp_instance</data_table>
+        <demo_data/>
+        <description/>
+        <docs/>
+        <field_list/>
+        <has_preview>true</has_preview>
+        <id>demo_widget_1</id>
+        <internal>false</internal>
+        <link><![CDATA[function link(scope, element, attrs, controller) {  }]]></link>
+        <name>Demo Widget 1</name>
+        <option_schema/>
+        <public>false</public>
+        <roles/>
+        <script><![CDATA[if(input) {
+	data.user = getCurrentUser();
+	data.persons = getContent();
+} else {
+	data.user = getCurrentUser();
+	data.persons = getContent();
+}
+
+function getCurrentUser() {
+	var user = {
+		name: gs.getUserDisplayName(), 
+		isAdmin: currentUserIsAdmin()
+	}
+	return user;
+}
+
+function currentUserIsAdmin() {
+	return true;
+}
+
+function getContent() {
+	var gr = new GlideRecord('x_186365_demo_celular');
+	var arr = [];
+	gr.query();
+
+	var cel = {};
+	while(gr.next()) {
+		cel = {
+			user: gr.getDisplayValue('u_user'),
+			cel : gr.getDisplayValue('u_phone_number')
+		};		
+		arr.push(cel);
+		cel = {};
+	}
+	return arr;
+}]]></script>
+        <servicenow>false</servicenow>
+        <sys_class_name>sp_widget</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2019-03-11 20:48:46</sys_created_on>
+        <sys_id>be092b7edb803300cbc47d9ebf961930</sys_id>
+        <sys_mod_count>155</sys_mod_count>
+        <sys_name>Demo Widget 1</sys_name>
+        <sys_package display_value="Demo" source="x_186365_demo">f187e3fadb803300cbc47d9ebf9619fe</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="Demo">f187e3fadb803300cbc47d9ebf9619fe</sys_scope>
+        <sys_update_name>sp_widget_be092b7edb803300cbc47d9ebf961930</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2019-03-19 17:51:25</sys_updated_on>
+        <template><![CDATA[<div id='main-demo-container'>
+  <div class='title-container z-depth-1'>
+    <h2 class=''>
+      Hello <span class='bold' ng-if='c.data.user'>{{c.data.user.name}}</span>
+    </h2>    
+  </div>
+  
+  <div class="add-user-container z-depth-1 row form-inline"
+       ng-if='c.data.user.isAdmin'>
+    <h3>Add a new user</h3>
+    <hr>
+    <!-- User -->
+    <div class="form-group">
+      <label>User</label>
+      <input type="text" class="form-control" placeholder="User"
+             ng-model='c.addUserValue'
+             ng-model-options='{debounce: 250}'
+             uib-typeahead='user as user.name for user in c.searchUsers($viewValue)'>
+    </div>
+    
+		<!-- Phone -->
+    <div class="form-group">
+      <label>Phone</label>
+      <input type="text" class="form-control" ng-model='c.addPhoneValue' placeholder="Phone">
+    </div>
+    
+    <button ng-click='c.save()' class="btn btn-primary">Submit</button>
+    
+  </div> <!-- // add user container -->
+
+  <div class='table-container z-depth-1'>
+    <h3>Celular Table</h3>
+    <hr>
+    <table class='table table-hover table-striped table-bordered'>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Phone</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <tr ng-repeat='person in c.data.persons | orderBy:"user"'>
+          <td>{{person.user}}</td>
+          <td>{{person.cel}}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+
+</div> <!-- // Main demo container -->]]></template>
+    </sp_widget>
+</record_update>
